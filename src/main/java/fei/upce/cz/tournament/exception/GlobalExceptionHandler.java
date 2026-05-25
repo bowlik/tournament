@@ -12,10 +12,22 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.stream.Collectors;
 
+/**
+ * Globální handler pro výjimky v celé aplikaci.
+ * Zachytává výjimky z controllerů a vrací jednotný formát chybových odpovědí.
+ * Díky @RestControllerAdvice se aplikuje na všechny REST controllery.
+ */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
+    /**
+     * Zpracuje výjimku když požadovaný zdroj nebyl nalezen.
+     * Vrací HTTP 404 Not Found.
+     *
+     * @param e výjimka s popisem chyby
+     * @return chybová odpověď s HTTP 404
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleNotFound(
             ResourceNotFoundException e) {
@@ -24,6 +36,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseDto.error(e.getMessage()));
     }
 
+    /**
+     * Zpracuje výjimku když se uživatel pokusí vytvořit již existující zdroj.
+     * Vrací HTTP 409 Conflict.
+     *
+     * @param e výjimka s popisem chyby
+     * @return chybová odpověď s HTTP 409
+     */
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleAlreadyExists(
             ResourceAlreadyExistsException e) {
@@ -32,6 +51,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseDto.error(e.getMessage()));
     }
 
+    /**
+     * Zpracuje výjimku když je turnaj plný a nelze se registrovat.
+     * Vrací HTTP 409 Conflict.
+     *
+     * @param e výjimka s popisem chyby
+     * @return chybová odpověď s HTTP 409
+     */
     @ExceptionHandler(TournamentFullException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleTournamentFull(
             TournamentFullException e) {
@@ -40,6 +66,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseDto.error(e.getMessage()));
     }
 
+    /**
+     * Zpracuje výjimku při selhání validace vstupních dat.
+     * Sbírá všechny chybové zprávy z polí a vrací je jako jeden řetězec.
+     * Vrací HTTP 400 Bad Request.
+     *
+     * @param e výjimka obsahující seznam chyb validace
+     * @return chybová odpověď s HTTP 400
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleValidation(
             MethodArgumentNotValidException e) {
@@ -52,6 +86,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseDto.error(errors));
     }
 
+    /**
+     * Zpracuje výjimku při špatných přihlašovacích údajích.
+     * Vrací HTTP 401 Unauthorized.
+     *
+     * @param e výjimka
+     * @return chybová odpověď s HTTP 401
+     */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleBadCredentials(
             BadCredentialsException e) {
@@ -60,6 +101,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseDto.error("Špatné uživatelské jméno nebo heslo"));
     }
 
+    /**
+     * Zpracuje výjimku při pokusu o přístup k chráněnému endpointu bez oprávnění.
+     * Vrací HTTP 403 Forbidden.
+     *
+     * @param e výjimka
+     * @return chybová odpověď s HTTP 403
+     */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleAccessDenied(
             AccessDeniedException e) {
@@ -68,6 +116,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseDto.error("Nemáte oprávnění k této akci"));
     }
 
+    /**
+     * Zachytí všechny ostatní neočekávané výjimky.
+     * Vrací HTTP 500 Internal Server Error.
+     *
+     * @param e výjimka
+     * @return chybová odpověď s HTTP 500
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDto<Void>> handleGeneral(Exception e) {
         log.error("Neočekávaná chyba: {}", e.getMessage(), e);

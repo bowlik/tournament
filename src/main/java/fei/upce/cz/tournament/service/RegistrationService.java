@@ -15,6 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
+/**
+ * Service třída pro správu registrací hráčů do turnajů.
+ * Obsahuje business logiku pro přihlašování a odhlašování hráčů
+ * včetně validace kapacity turnaje a duplicitních registrací.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,6 +29,18 @@ public class RegistrationService {
     private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Zaregistruje hráče do turnaje.
+     * Kontroluje zda je turnaj otevřený, zda hráč není již registrován
+     * a zda turnaj není plný.
+     *
+     * @param tournamentId ID turnaje
+     * @param username uživatelské jméno hráče
+     * @throws ResourceNotFoundException pokud uživatel nebo turnaj neexistuje
+     * @throws ResourceAlreadyExistsException pokud je hráč již registrován
+     * @throws TournamentFullException pokud je turnaj plný
+     * @throws IllegalStateException pokud turnaj není otevřen
+     */
     public void register(Long tournamentId, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
@@ -51,6 +68,13 @@ public class RegistrationService {
         log.info("Hráč {} se registroval do turnaje {}", username, tournament.getName());
     }
 
+    /**
+     * Odhlásí hráče z turnaje.
+     *
+     * @param tournamentId ID turnaje
+     * @param username uživatelské jméno hráče
+     * @throws ResourceNotFoundException pokud registrace neexistuje
+     */
     public void unregister(Long tournamentId, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
@@ -66,6 +90,13 @@ public class RegistrationService {
         log.info("Hráč {} se odregistroval z turnaje {}", username, tournament.getName());
     }
 
+    /**
+     * Vrátí seznam turnajů ve kterých je přihlášen daný hráč.
+     *
+     * @param username uživatelské jméno hráče
+     * @return seznam turnajů jako DTO
+     * @throws ResourceNotFoundException pokud uživatel neexistuje
+     */
     public List<TournamentResponseDto> getMyTournaments(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
